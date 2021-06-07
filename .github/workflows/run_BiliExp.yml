@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-      with: 
-        repository: ${{ secrets.REPOSITORY }}
-        ref: ${{ secrets.REF }}
 
     - uses: actions/cache@v2
       with:
