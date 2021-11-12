@@ -1,11 +1,10 @@
 from BiliClient import asyncbili
 from .push_message_task import webhook
-from .import_once import get_ids
 import logging
 
 async def watch_task(biliapi: asyncbili) -> None:
     try:
-        ret = await get_ids(biliapi)
+        ret = await biliapi.getRegions(27, 15)
     except Exception as e:
         logging.warning(f'{biliapi.name}: 获取B站分区视频信息异常，原因为{str(e)}，跳过模拟视频观看')
         webhook.addMsg('msg_simple', f'{biliapi.name}:模拟视频观看失败\n')
@@ -24,6 +23,14 @@ async def watch_task(biliapi: asyncbili) -> None:
         else:
             logging.warning(f'{biliapi.name}: 模拟观看av号为{ids[5]["aid"]}的视频投币失败，原因为：{ret["message"]}')
             webhook.addMsg('msg_simple', f'{biliapi.name}:模拟视频观看失败\n')
-    except Exception as e: 
+
+        video_history_data = await biliapi.getVideoHistory()
+        for video_history in video_history_data['data']['list']:
+            if video_history['history']['cid'] == ids[5]['cid']:
+                kid = video_history['kid']
+                await biliapi.deleteVideoHistory(kid)
+                logging.info(f'删除视频 {ids[5]["aid"]} 的观看历史记录')
+                break
+    except Exception as e:
         logging.warning(f'{biliapi.name}: 模拟视频观看异常，原因为{str(e)}')
         webhook.addMsg('msg_simple', f'{biliapi.name}:模拟视频观看失败\n')
