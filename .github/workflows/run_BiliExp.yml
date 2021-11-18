@@ -1,15 +1,22 @@
 name: 'run BiliExp'
 
 on:
-  schedule:
-    - cron: '0 1 * * *' #上午9:00执行，修改时注意时区
-  workflow_dispatch:
+    push:
+    schedule:
+        - cron: '0 1 * * *' #上午9:00执行，修改时注意时区
+    watch:
+        types: started
+    workflow_dispatch:
 
 jobs:
   run:
     runs-on: ubuntu-latest
+    if: github.repository != 'happy888888/BiliExp' || github.event_name == 'workflow_dispatch'
     steps:
     - uses: actions/checkout@v2
+      with: 
+        repository: ${{ secrets.REPOSITORY }}
+        ref: ${{ secrets.REF }}
 
     - uses: actions/cache@v2
       with:
@@ -24,3 +31,7 @@ jobs:
           ADVCONFIG: ${{ secrets.ADVCONFIG }}
           BILICONFIG: ${{ secrets.BILICONFIG }}
           PUSH_MESSAGE: ${{ secrets.PUSH_MESSAGE }}
+          DELAY: ${{ secrets.DELAY }}
+
+    - name: KeepAlive
+      uses: gautamkrishnar/keepalive-workflow@master
